@@ -1,0 +1,13 @@
+@extends('layouts.app')
+
+@section('title', 'Hasil Screening')
+
+@section('content')
+<div class="page-head"><div><h1>Hasil screening</h1><p>Nomor hasil: {{ $result->nomor_screening }}</p></div><a class="btn" href="{{ route('admin.screening.history') }}">Kembali ke riwayat</a></div>
+<div class="notice">Pemetaan awal untuk bahan pertimbangan sekolah. Hasil bukan diagnosis dan bukan keputusan penerimaan siswa.</div>
+@if(session('status'))<div class="alert alert-success">{{ session('status') }}</div>@endif
+<section class="panel"><h2>Data calon siswa</h2><div class="form-grid"><div><span class="muted">Nama anak</span><br><strong>{{ $result->nama_anak }}</strong></div><div><span class="muted">Nomor pendaftaran</span><br><strong>{{ $result->nomor_pendaftaran }}</strong></div><div><span class="muted">Tanggal screening</span><br><strong>{{ \Illuminate\Support\Carbon::parse($result->created_at)->format('d-m-Y H:i') }}</strong></div><div><span class="muted">Metode</span><br><strong>Categorical Naïve Bayes</strong></div></div></section>
+<section class="panel"><h2>Pemberitahuan kepada orang tua</h2>@if($validation?->status === 'dikonfirmasi')<div class="alert alert-success">Hasil terkonfirmasi otomatis saat screening dihitung pada {{ \Illuminate\Support\Carbon::parse($validation->validated_at)->format('d-m-Y H:i') }} dan tersedia di dashboard orang tua.</div><p>{{ $validation->catatan_admin }}</p>@else<div class="alert alert-warning">Hasil ini belum tersedia pada akun orang tua. Periksa status pencatatan validasi di database.</div>@endif</section>
+<section class="panel"><h2>Kesimpulan klasifikasi</h2><p><span class="badge">{{ $result->kelas_prediksi }}</span></p><div class="card-list"><div class="step"><small>Peluang Sesuai harapan</small><b>{{ number_format((float) $result->probabilitas_sesuai_harapan * 100, 2, ',', '.') }}%</b></div><div class="step"><small>Peluang Memerlukan perhatian lebih lanjut</small><b>{{ number_format((float) $result->probabilitas_perhatian_lanjutan * 100, 2, ',', '.') }}%</b></div></div></section>
+<section class="panel"><h2>Rincian fitur dan peluang</h2><div class="table-wrap"><table class="table"><thead><tr><th>Fitur</th><th>Nilai</th><th>Peluang kelas Sesuai harapan</th><th>Peluang kelas Perhatian lebih lanjut</th></tr></thead><tbody>@foreach($details as $detail)<tr><td>{{ $detail->nama_fitur }}</td><td>{{ $detail->nilai_fitur ?? '—' }}</td><td>{{ $detail->peluang_sesuai_harapan === null ? '—' : number_format((float) $detail->peluang_sesuai_harapan, 6, ',', '.') }}</td><td>{{ $detail->peluang_perhatian_lanjutan === null ? '—' : number_format((float) $detail->peluang_perhatian_lanjutan, 6, ',', '.') }}</td></tr>@endforeach</tbody></table></div></section>
+@endsection
